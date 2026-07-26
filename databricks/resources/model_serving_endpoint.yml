@@ -1,0 +1,47 @@
+# Illustrative DAB resource — the real-workspace counterpart to
+# credit_risk.adapters.model_serving.InMemoryModelServing.
+#
+# Note on shadow deployment: Databricks' built-in traffic_config only supports
+# percentage-based routing between served entities, not true request mirroring.
+# Setting the shadow entity's traffic_percentage to 0 keeps it hosted and
+# queryable but not part of the routed split. To get genuine shadow behaviour
+# (every request scored by both models, only champion's result returned to the
+# caller) you either mirror requests at the client/gateway layer — what
+# InMemoryModelServing.score() does in this demo — or replay auto_capture_config's
+# logged inference table against the shadow entity out-of-band.
+
+resources:
+  model_serving_endpoints:
+    credit_risk_endpoint:
+      name: credit-risk-endpoint
+      config:
+        served_entities:
+          - name: champion
+            entity_name: ${var.catalog}.${var.schema}.credit_risk_classifier
+            entity_version: "{{champion_version}}"
+            workload_size: Small
+            scale_to_zero_enabled: true
+          - name: shadow
+            entity_name: ${var.catalog}.${var.schema}.credit_risk_classifier
+            entity_version: "{{shadow_version}}"
+            workload_size: Small
+            scale_to_zero_enabled: true
+        traffic_config:
+          routes:
+            - served_model_name: champion
+              traffic_percentage: 100
+            - served_model_name: shadow
+              traffic_percentage: 0
+        auto_capture_config:
+          catalog_name: ${var.catalog}
+          schema_name: ${var.schema}
+          table_name_prefix: credit_risk_inference
+      rate_limits:
+        - calls: 100
+          key: endpoint
+          renewal_period: minute
+      tags:
+        - key: project
+          value: credit-risk-decisioning
+        - key: risk_classification
+          value: eu_ai_act_high_risk

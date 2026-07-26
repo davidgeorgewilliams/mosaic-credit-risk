@@ -1,0 +1,13 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+mlruns/
+mlartifacts/
+mlflow.db
+.coverage
+htmlcov/
+.DS_Store

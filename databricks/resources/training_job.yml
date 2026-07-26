@@ -1,0 +1,29 @@
+# Illustrative DAB resource — the scheduled/triggerable counterpart to running
+# `python -m credit_risk.models.train` locally (see credit_risk/models/train.py).
+
+resources:
+  jobs:
+    credit_risk_retrain:
+      name: credit-risk-retrain
+      description: >-
+        Retrains the credit-risk classifier and registers a new candidate
+        version under the `shadow` alias. Runs on a daily schedule and, in
+        production, is also triggered on-demand by the job_payload emitted
+        from credit_risk.monitoring.retrain_trigger when Lakehouse Monitoring
+        flags critical drift.
+      schedule:
+        quartz_cron_expression: "0 0 6 * * ?" # daily at 06:00
+        timezone_id: "Europe/London"
+      tasks:
+        - task_key: train_and_register
+          python_wheel_task:
+            package_name: credit_risk
+            entry_point: train
+          new_cluster:
+            spark_version: "15.4.x-scala2.12"
+            node_type_id: "Standard_DS3_v2"
+            num_workers: 0
+            data_security_mode: SINGLE_USER
+      email_notifications:
+        on_failure:
+          - mlops-oncall@example.com

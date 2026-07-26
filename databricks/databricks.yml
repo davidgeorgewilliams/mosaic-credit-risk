@@ -1,0 +1,40 @@
+# Databricks Asset Bundle definition — illustrative, not deployed by this demo
+# (see README for why). This is what the CI/CD discipline referenced throughout
+# `credit_risk` looks like once a real workspace is available: `databricks
+# bundle deploy` ships the training job and the model-serving endpoint config
+# as versioned, environment-parameterised infrastructure, the same way
+# Terraform would for anything else — no manual clicking in the workspace UI.
+
+bundle:
+  name: credit-risk-decisioning
+
+include:
+  - resources/*.yml
+
+variables:
+  catalog:
+    description: Unity Catalog catalog for this project's tables and models
+    default: main
+  schema:
+    description: Unity Catalog schema
+    default: credit_risk
+
+targets:
+  dev:
+    mode: development
+    default: true
+    workspace:
+      host: https://<your-workspace>.azuredatabricks.net
+    variables:
+      catalog: main
+      schema: credit_risk_dev
+
+  prod:
+    mode: production
+    workspace:
+      host: https://<your-workspace>.azuredatabricks.net
+    variables:
+      catalog: main
+      schema: credit_risk
+    run_as:
+      service_principal_name: svc-credit-risk-mlops
