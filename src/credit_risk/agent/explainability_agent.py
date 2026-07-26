@@ -20,7 +20,8 @@ from credit_risk.adapters.ai_search import VectorSearchClient
 from credit_risk.adapters.llm_client import LLMClient
 from credit_risk.adapters.model_serving import ModelServingClient
 from credit_risk.agent import guardrails, prompts
-from credit_risk.domain.schemas import Decision, Explanation, FactorContribution, RiskScore
+from credit_risk.domain.schemas import Explanation, FactorContribution, RiskScore
+from credit_risk.governance.eu_ai_act import human_oversight_required
 
 
 class ExplainabilityAgent:
@@ -75,7 +76,7 @@ class ExplainabilityAgent:
             top_factors=top_factors,
             cited_policy_clauses=[m.clause_id for m in policy_matches],
             guardrail_passed=result.passed,
-            human_review_required=(not result.passed) or risk_score.decision != Decision.APPROVE,
+            human_review_required=human_oversight_required(risk_score.decision, result.passed),
             prompt_name=prompts.PROMPT_NAME,
             prompt_version=prompt_version,
             input_tokens=response.input_tokens,

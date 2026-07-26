@@ -36,5 +36,12 @@ class Settings(BaseSettings):
     ai_gateway_rate_limit_per_minute: int = 60
     ai_gateway_token_budget_per_day: int = 200_000
 
+    # HMAC key for pseudonymizing identifiers that cross a trust boundary (see
+    # credit_risk.governance.gdpr.pseudonymize). The default below is fine for
+    # local/demo use only — since it ships in this public repo, a real deployment
+    # MUST override it via CREDIT_RISK_PSEUDONYMIZATION_SECRET, otherwise a
+    # bare/known-key hash is exactly as reversible as no key at all.
+    pseudonymization_secret: str = "dev-only-insecure-default-change-me"
+
 
 settings = Settings()

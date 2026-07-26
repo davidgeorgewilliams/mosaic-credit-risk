@@ -41,8 +41,17 @@ SYSTEM_CLASSIFICATION = RiskClassification(
 )
 
 
+def human_oversight_required(decision: Decision, guardrail_passed: bool) -> bool:
+    """Article 14 human-oversight predicate — the single source of truth for
+    whether a decision needs human review. Takes primitives rather than a
+    `RiskScore`/`Explanation` pair so `ExplainabilityAgent.explain()` can call it
+    while still building the `Explanation` (whose `human_review_required` field
+    is derived from this same rule), not just after the fact from `AuditLog`."""
+    return decision != Decision.APPROVE or not guardrail_passed
+
+
 def requires_human_oversight(risk_score: RiskScore, explanation: Explanation) -> bool:
-    return risk_score.decision != Decision.APPROVE or not explanation.guardrail_passed
+    return human_oversight_required(risk_score.decision, explanation.guardrail_passed)
 
 
 @dataclass

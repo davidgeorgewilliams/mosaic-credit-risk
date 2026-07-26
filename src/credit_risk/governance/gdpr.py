@@ -9,8 +9,10 @@ sent to a third-party LLM provider), and Article 15/22 subject-access responses 
 """
 
 import hashlib
+import hmac
 from datetime import UTC, datetime, timedelta
 
+from credit_risk.config import settings
 from credit_risk.domain.schemas import Explanation, RiskScore
 
 # Article 5(1)(e) storage limitation: how long an application record and its
@@ -22,8 +24,17 @@ def pseudonymize(applicant_id: str) -> str:
     """One-way, deterministic pseudonym for anything crossing a trust boundary
     (external LLM provider logs, third-party monitoring). Deterministic so the
     same applicant maps to the same pseudonym across calls without storing a
-    reversible mapping outside the system of record."""
-    digest = hashlib.sha256(applicant_id.encode("utf-8")).hexdigest()
+    reversible mapping outside the system of record.
+
+    Keyed with `settings.pseudonymization_secret` rather than a bare hash:
+    applicant IDs are sequential and low-entropy (`APP-000000`, `APP-000001`, ...),
+    so an unkeyed hash would let anyone who obtains a pseudonym reverse it by
+    hashing the entire ID space."""
+    digest = hmac.new(
+        settings.pseudonymization_secret.encode("utf-8"),
+        applicant_id.encode("utf-8"),
+        hashlib.sha256,
+    ).hexdigest()
     return f"PSN-{digest[:16]}"
 
 

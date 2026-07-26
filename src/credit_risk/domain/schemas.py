@@ -20,11 +20,11 @@ class EmploymentStatus(StrEnum):
 
 class Applicant(BaseModel):
     applicant_id: str
-    income_band: int = Field(description="Annual income bucketed to nearest 5k, GBP")
-    debt_to_income_ratio: float
-    credit_history_years: float
-    num_delinquencies_last_2y: int
-    loan_amount_requested: int
+    income_band: int = Field(ge=0, description="Annual income bucketed to nearest 5k, GBP")
+    debt_to_income_ratio: float = Field(ge=0.0, le=5.0)
+    credit_history_years: float = Field(ge=0.0, le=100.0)
+    num_delinquencies_last_2y: int = Field(ge=0, le=100)
+    loan_amount_requested: int = Field(gt=0)
     employment_status: EmploymentStatus
     age_band: str = Field(description="e.g. '25-34' — never raw date of birth")
     region: str = Field(description="NUTS-1 region, never full address")

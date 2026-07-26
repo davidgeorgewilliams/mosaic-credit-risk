@@ -41,7 +41,10 @@ PROTECTED_TERM_PATTERNS = [
 ]
 PII_PATTERNS = [
     r"[\w.+-]+@[\w-]+\.[\w.-]+",  # email
-    r"\b\d{2}\s?\d{2}\s?\d{2}\s?[A-Z]\b",  # NI-number-shaped
+    # UK National Insurance number: 2 letters, 6 digits, 1 suffix letter (e.g.
+    # "AB123456C" or "AB 12 34 56 C") — the previous digits-only pattern didn't
+    # match this actual shape at all.
+    r"\b[A-Za-z]{2}\s?\d{2}\s?\d{2}\s?\d{2}\s?[A-Za-z]\b",
 ]
 REQUIRED_DISCLOSURE = "human review"
 
